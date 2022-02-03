@@ -13,7 +13,7 @@
 SELECT * 
 FROM AUDJPY 
 
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 --Duration In Which All Trades Were Taken 
 
@@ -22,6 +22,8 @@ FROM AUDJPY
 
 
 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 --Trades With An Above Average Profit 
 
 SELECT Session,
@@ -29,6 +31,259 @@ SELECT Session,
        (SELECT AVG(ProfitLossFTP) FROM AUDJPY) AvgProfitFTP
 FROM AUDJPY 
 WHERE ProfitLossFTP > (SELECT AVG(ProfitLossFTP) FROM AUDJPY) 
+
+
+
+--TOTAL TRADES TAKEN DURING EACH SESSION 
+
+SELECT Session,
+       COUNT(Session)TradesTaken
+FROM AUDJPY
+	GROUP BY Session
+	ORDER BY TradesTaken DESC
+
+
+
+--TYPE OF POSITION HELD DURING EACH SESSION 
+
+SELECT Session,
+       Position, 
+       COUNT(Position) SumPosition
+FROM AUDJPY
+	GROUP BY Session,
+		 Position
+	ORDER BY Session,
+		 SumPosition DESC;
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--#### TOTAL TRADES,BUYS,SELLS & CONFLUENCES #### 
+
+--TOTAL TRADES TAKEN DURING EACH SESSION 
+
+SELECT Session, 
+       COUNT(Session)TradesTaken
+FROM AUDJPY
+	GROUP BY Session
+	ORDER BY TradesTaken DESC;
+
+
+
+--TOTAL BUY & SELL POSITIONS
+
+SELECT Position,
+       COUNT(Position) PositionOccurence
+FROM AUDJPY 
+	GROUP BY Position;
+	
+	
+
+--Total Wins/Losses for Buys/Sells FTP
+
+SELECT * 
+FROM BUYFTP buy 
+	INNER JOIN SELLFTP sell 
+	ON buy.session = sell.session 
+	ORDER BY buy.session,
+	         sell.session,
+		 buy.total DESC,
+	         sell.total DESC;
+
+
+
+--Total Wins/Losses for Buys/Sells TSL
+
+SELECT * 
+FROM BUYTSL buy 
+	INNER JOIN SELLTSL sell 
+	ON buy.session = sell.session 
+	ORDER BY buy.session,
+		 sell.session,
+		 buy.total DESC,
+		 sell.total DESC;
+
+
+
+--Types of Confluences & Number of Occurences 
+
+SELECT Confluence, 
+       COUNT(Confluence) TypeConfluence
+FROM AUDJPY
+	GROUP BY Confluence
+	ORDER BY TypeConfluence DESC;
+	
+	
+	
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--#### WINS & WIN PERCENTAGE ####
+
+
+
+--Wins Per Session,Total Trades,Total Wins & Win Percetange Per Session For FTP
+
+WITH FXCTE AS
+(
+SELECT Session,
+       COUNT(OutcomeFTP) TotalWinsFTP,
+       (SELECT COUNT(OutcomeFTP) FROM AUDJPY) TotalTrades,
+       ROUND(SUM(TradeID) / (COUNT(OutcomeFTP)),1) WinPercentageFTP
+FROM AUDJPY 
+WHERE OutcomeFTP = 'Win' 
+	GROUP BY Session,
+		 OutcomeFTP
+)
+SELECT Session,   
+       (SELECT COUNT(OutcomeFTP) FROM AUDJPY) TotalTrades,
+       TotalWinsFTP TotalWinsBySession,
+       (SELECT(SUM(TotalWinsFTP)) FROM FXCTE) TotalWinsCombined,
+       WinPercentageFTP WinPercentageBySession
+FROM FXCTE;
+
+
+
+--Wins Per Session,Total Trades,Total Wins & Win Percetange Per Session For TSL
+
+WITH FXCTE AS
+(
+SELECT Session,
+       COUNT(OutcomeTSL) TotalWinsTSL,   
+       (SELECT COUNT(OutcomeTSL) FROM AUDJPY) TotalTrades,
+       ROUND(SUM(TradeID) / (COUNT(OutcomeTSL)),1) WinPercentageTSL
+FROM AUDJPY 
+WHERE OutcomeTSL = 'Win' 
+	GROUP BY Session,
+		 OutcomeTSL
+)
+SELECT Session,
+       (SELECT COUNT(OutcomeTSL) FROM AUDJPY) TotalTrades,   
+       TotalWinsTSL TotalWinsBySession,
+       (SELECT(SUM(TotalWinsTSL)) FROM FXCTE) TotalWinsCombined,
+       WinPercentageTSL WinPercentageBySession
+FROM FXCTE;
+
+
+
+--FTP Overall Win Percentage For All Sessions Combined
+
+SELECT ROUND(SUM(TradeID) / (COUNT(OutcomeFTP)),1) WinPercentageFTP
+FROM AUDJPY 
+WHERE OutcomeFTP = 'Win';
+
+
+
+--TSL Overall Win Percentage Fro All Sessions Combined
+
+SELECT ROUND(SUM(TradeID) / (COUNT(OutcomeTSL)),1) WinPercentageTSL
+FROM AUDJPY 
+WHERE OutcomeTSL = 'Win';
+
+
+
+--FTP Profit Based On Confluences
+
+SELECT DISTINCT Confluence,
+	            COUNT(Confluence) Confluences,
+		    SUM(ProfitLossFTP) TotalProfit,
+		    ROUND(AVG(ProfitLossFTP),0) AvgProfit,
+	            (SELECT SUM(ProfitLossFTP) FROM AUDJPY) OverallProfit
+FROM AUDJPY 
+WHERE OutcomeFTP = 'Win'
+	GROUP BY Confluence
+	ORDER BY 2 DESC;
+
+
+
+--TSL Profit Based On Confluences
+
+SELECT DISTINCT Confluence,
+	        COUNT(Confluence) Confluences,
+		SUM(ProfitLossTSL) TotalProfit,
+		ROUND(AVG(ProfitLossTSL),0) AvgProfit,
+		(SELECT ROUND(SUM(ProfitLossTSL),0) FROM AUDJPY) OverallProfit
+FROM AUDJPY 
+WHERE OutcomeTSL = 'Win'
+	GROUP BY Confluence
+	ORDER BY 2 DESC;
+	
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--#### FINAL FTP & TSL RESULTS ####
+
+
+
+--FTP & TSL RESULTS
+
+SELECT * 
+FROM TOTALFTP ftp
+	INNER JOIN TOTALTSL tsl
+	ON ftp.session = tsl.session 
+	
+	
+
+--Most Profitable Confluences for each session FTP
+
+SELECT DISTINCT(Session),
+		Confluence,
+		ProfitLossFTP
+FROM AUDJPY 
+GROUP BY Session,
+	 Confluence,
+	 ProfitLossFTP
+	ORDER BY 1,
+		 3 DESC;
+		 
+
+
+--Most Profitable Confluences for each session TSL
+
+SELECT DISTINCT(Session),
+		Confluence,
+		ProfitLossTSL
+FROM AUDJPY 
+GROUP BY Session,
+	 Confluence,
+	 ProfitLossTSL
+	ORDER BY 1,
+		 3 DESC;
+		 
+		 
+
+--POSITIVE & NEGATIVE FTP For Each Confluence
+
+SELECT ProfitLossFTP,
+       Confluence,
+       COUNT(ProfitLossFTP) FTPOccurence
+FROM AUDJPY 
+	GROUP BY ProfitLossFTP,
+		 Confluence
+	ORDER BY FTPOccurence DESC;
+	
+	
+
+--POSITIVE & NEGATIVE TSL For Each Confluence
+
+SELECT ProfitLossTSL,
+       Confluence,
+       COUNT(ProfitLossTSL) TSLOccurence
+FROM AUDJPY 
+	GROUP BY ProfitLossTSL,
+		 Confluence
+	ORDER BY TSLOccurence DESC;
+	
+
+
+--COMPARING FTP & TSL BEFORE & AFTER SPLITS (PBS = Profit Before Split , PAS = Profit After Split)
+
+SELECT SUM(ProfitLossFTP) PBSFTP,
+       SUM(ProfitLossFTP) * 0.7 PASFTP,
+       SUM(ProfitLossTSL) PBSTSL,
+       SUM(ProfitLossTSL) * 0.7 PASTSL
+FROM AUDJPY 
 
 
 
@@ -43,20 +298,20 @@ FROM TOTALFTP ftp
 
 
 
-SELECT Session,SUM(ProfitLossFTP) TotalProfitBeforeSplitFTP,SUM(ProfitLossFTP) * 0.8 TotalProfitAfterSplitFTP,ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,SUM(ProfitLossTSL) TotalProfitBeforeSplitTSL,SUM(ProfitLossTSL) * 0.8 TotalProfitAfterSplitTSL,ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL
+SELECT Session,SUM(ProfitLossFTP) TotalProfitBeforeSplitFTP,SUM(ProfitLossFTP) * 0.7 TotalProfitAfterSplitFTP,ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,SUM(ProfitLossTSL) TotalProfitBeforeSplitTSL,SUM(ProfitLossTSL) * 0.7 TotalProfitAfterSplitTSL,ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL
 FROM AUDJPY 
 GROUP BY Session 
 
 
 
-SELECT Session,Confluence,ProfitLossFTP,COUNT(ProfitLossFTP) OccuredNumTimes,(ProfitLossFTP * COUNT(ProfitLossFTP) *  0.8) TotalProfit
+SELECT Session,Confluence,ProfitLossFTP,COUNT(ProfitLossFTP) OccuredNumTimes,(ProfitLossFTP * COUNT(ProfitLossFTP) *  0.7) TotalProfit
 FROM AUDJPY 
 GROUP BY Session,Confluence,ProfitLossFTP
 ORDER BY 1,5 DESC
 
 
 
-SELECT Session,Confluence,ProfitLossTSL,COUNT(ProfitLossTSL) OccuredNumTimes,(ProfitLossTSL * COUNT(ProfitLossTSL) *  0.8) TotalProfit
+SELECT Session,Confluence,ProfitLossTSL,COUNT(ProfitLossTSL) OccuredNumTimes,(ProfitLossTSL * COUNT(ProfitLossTSL) *  0.7) TotalProfit
 FROM AUDJPY 
 GROUP BY Session,Confluence,ProfitLossTSL
 ORDER BY 1,5 DESC
@@ -83,7 +338,7 @@ ORDER BY 1,3 DESC
 
 --Profit For FTP 
 
-SELECT Session,ROUND(MIN(ProfitLossFTP),2) MinProfitFTP, ROUND(MAX(ProfitLossFTP),2) MaxProfitFTP, ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,ROUND(AVG(ProfitLossFTP),2) * 0.8 AvgProfitFTPSplit,ROUND(SUM(ProfitLossFTP),2) TotalProfitFTP,ROUND(SUM(ProfitLossFTP),2) * 0.8 TotalProfitSplitFTP 
+SELECT Session,ROUND(MIN(ProfitLossFTP),2) MinProfitFTP, ROUND(MAX(ProfitLossFTP),2) MaxProfitFTP, ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,ROUND(AVG(ProfitLossFTP),2) * 0.7 AvgProfitFTPSplit,ROUND(SUM(ProfitLossFTP),2) TotalProfitFTP,ROUND(SUM(ProfitLossFTP),2) * 0.7 TotalProfitSplitFTP 
 FROM AUDJPY 
 GROUP BY Session
 
@@ -99,7 +354,7 @@ GROUP BY Session
 
 --Profit For TSL
 
-SELECT Session,ROUND(MIN(ProfitLossTSL),2) MinProfitTSL, ROUND(MAX(ProfitLossTSL),2) MaxProfitTSL, ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL,ROUND(AVG(ProfitLossTSL),2) * 0.8 AvgProfitTSLSplit,ROUND(SUM(ProfitLossTSL),2) TotalProfitTSL,ROUND(SUM(ProfitLossTSL),2) * 0.8 TotalProfitSplitTSL
+SELECT Session,ROUND(MIN(ProfitLossTSL),2) MinProfitTSL, ROUND(MAX(ProfitLossTSL),2) MaxProfitTSL, ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL,ROUND(AVG(ProfitLossTSL),2) * 0.7 AvgProfitTSLSplit,ROUND(SUM(ProfitLossTSL),2) TotalProfitTSL,ROUND(SUM(ProfitLossTSL),2) * 0.7 TotalProfitSplitTSL
 FROM AUDJPY 
 GROUP BY Session
 
@@ -115,7 +370,7 @@ GROUP BY Session
 
 --Combined Profit 
 
-SELECT Session,ROUND(MIN(CombinedProfit),2) MinCombinedProfit,ROUND(MAX(CombinedProfit),2) MaxCombinedProfit,ROUND(AVG(CombinedProfit),2) AvgCombinedProfit,ROUND(AVG(CombinedProfit),2) * 0.8 AvgProfitCombinedSplit,ROUND(SUM(CombinedProfit),2) CombinedTotalProfit
+SELECT Session,ROUND(MIN(CombinedProfit),2) MinCombinedProfit,ROUND(MAX(CombinedProfit),2) MaxCombinedProfit,ROUND(AVG(CombinedProfit),2) AvgCombinedProfit,ROUND(AVG(CombinedProfit),2) * 0.7 AvgProfitCombinedSplit,ROUND(SUM(CombinedProfit),2) CombinedTotalProfit
 FROM AUDJPY 
 GROUP BY Session
 
@@ -126,152 +381,6 @@ GROUP BY Session
 SELECT Session,ROUND(MIN(CombinedPercent),4) * 100  MinCombinedPercent,ROUND(MAX(CombinedPercent),4) * 100 MaxCombinedPercent,ROUND(AVG(CombinedPercent),4) * 100 AvgCombinedPercent,ROUND(SUM(CombinedPercent),4) CombinedTotalPercent
 FROM AUDJPY 
 GROUP BY Session
-
-
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---Total Wins/Losses for Buys & Sells FTP & TSL
-
-SELECT * 
-FROM BUYFTP buy 
-	INNER JOIN SELLFTP sell 
-	ON buy.session = sell.session 
-	
-	
-
---FTP Overall Win Percentage For All Sessions Combined
-
-SELECT ROUND(SUM(TradeID) / (COUNT(OutcomeFTP)),1) WinPercentageFTP
-FROM AUDJPY 
-WHERE OutcomeFTP = 'Win';
-
-
-
---Wins Per Session,Total Trades,Total Wins & Win Percetange Per Session For FTP
-
-WITH FXCTE AS
-(
-SELECT Session,COUNT(OutcomeFTP) TotalWinsFTP,(SELECT COUNT(OutcomeFTP) FROM AUDJPY) TotalTrades,ROUND(SUM(TradeID) / (COUNT(OutcomeFTP)),1) WinPercentageFTP
-FROM AUDJPY 
-WHERE OutcomeFTP = 'Win' 
-GROUP BY Session,OutcomeFTP
-)
-SELECT Session,(SELECT COUNT(OutcomeFTP) FROM AUDJPY) TotalTrades,TotalWinsFTP TotalWinsBySession,(SELECT(SUM(TotalWinsFTP)) FROM FXCTE) TotalWinsCombined,WinPercentageFTP WinPercentageBySession
-FROM FXCTE;
-
-
-
---TSL Overall Win Percentage Fro All Sessions Combined
-
-SELECT ROUND(SUM(TradeID) / (COUNT(OutcomeTSL)),1) WinPercentageTSL
-FROM AUDJPY 
-WHERE OutcomeTSL = 'Win';
-
-
-
---Wins Per Session,Total Trades,Total Wins & Win Percetange Per Session For TSL
-
-WITH FXCTE AS
-(
-SELECT Session,COUNT(OutcomeTSL) TotalWinsTSL,(SELECT COUNT(OutcomeTSL) FROM AUDJPY) TotalTrades,ROUND(SUM(TradeID) / (COUNT(OutcomeTSL)),1) WinPercentageTSL
-FROM AUDJPY 
-WHERE OutcomeTSL = 'Win' 
-GROUP BY Session,OutcomeTSL
-)
-SELECT Session,(SELECT COUNT(OutcomeTSL) FROM AUDJPY) TotalTrades,TotalWinsTSL TotalWinsBySession,(SELECT(SUM(TotalWinsTSL)) FROM FXCTE) TotalWinsCombined,WinPercentageTSL WinPercentageBySession
-FROM FXCTE;
-
-
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---TOTAL BUY & SELL POSITIONS
-
-SELECT Position,
-       COUNT(Position) PositionOccurence
-FROM AUDJPY 
-	GROUP BY Position 
-
-
-
---POSITIVE & NEGATIVE FTP For Each Confluence
-
-SELECT ProfitLossFTP,
-       Confluence,
-       COUNT(ProfitLossFTP) FTPOccurence
-FROM AUDJPY 
-	GROUP BY ProfitLossFTP,
-	         Confluence
-	ORDER BY FTPOccurence DESC;
-
-
-
---POSITIVE FTP PROFIT 
-
-SELECT ProfitLossFTP,
-       COUNT(ProfitLossFTP) FTPOccurence
-FROM AUDJPY
-WHERE ProfitLossFTP > 0 
-	GROUP BY ProfitLossFTP
-	ORDER BY ProfitLossFTP DESC,
-	         FTPOccurence DESC;
-
-
-
---PROFIT BEFORE AND AFTER 70%  PROFIT SPLIT
-
-SELECT SUM(ProfitLossFTP) ProfitBeforeSplit,
-       SUM(ProfitLossFTP) * 0.7 ProfitAfterSplit
-FROM AUDJPY 
-
-
-
---POSITIVE & NEGATIVE TSL
-
-SELECT ProfitLossTSL,
-       COUNT(ProfitLossTSL) TSLOccurence
-FROM AUDJPY 
-	GROUP BY ProfitLossTSL 
-	ORDER BY TSLOccurence DESC;
-
-
-
---POSITIVE TSL PROFIT
-
-SELECT ProfitLossTSL,
-       COUNT(ProfitLossTSL) TSLOccurence
-FROM AUDJPY
-WHERE ProfitLossTSL > 0 
-	GROUP BY ProfitLossTSL
-	ORDER BY ProfitLossTSL DESC,
-	         TSLOccurence DESC;
-
-
-
---FTP PROFIT BEFORE AND AFTER 70% PROFIT SPLIT 
-
-SELECT SUM(ProfitLossFTP) ProfitBeforeSplit,
-       SUM(ProfitLossFTP) * 0.7 ProfitAfterSplitFTP
-FROM AUDJPY 
-
-
-
---TSL PROFIT BEFORE AND AFTER 70% PROFIT SPLIT 
-
-SELECT SUM(ProfitLossTSL) ProfitBeforeSplit,
-       SUM(ProfitLossTSL) * 0.7 ProfitAfterSplitTSL
-FROM AUDJPY 
-
-
-
---COMPARING FTP & TSL BEFORE & AFTER SPLITS (PBS = Profit Before Split , PAS = Profit After Split)
-
-SELECT SUM(ProfitLossFTP) PBSFTP,
-       SUM(ProfitLossFTP) * 0.7 PASFTP,
-       SUM(ProfitLossTSL) PBSTSL,
-       SUM(ProfitLossTSL) * 0.7 PASTSL
-FROM AUDJPY 
 
 
 
@@ -317,31 +426,6 @@ FROM AUDJPY
 	GROUP BY ProfitLossTSL 
 HAVING COUNT(ProfitLossTSL) >= 2
 	ORDER BY TSLOccurence DESC
-
-
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
---TOTAL TRADES TAKEN DURING EACH SESSION 
-
-SELECT Session,
-       COUNT(Session)TradesTaken
-FROM AUDJPY
-	GROUP BY Session
-	ORDER BY TradesTaken DESC
-
-
-
---TYPE OF POSITION HELD DURING EACH SESSION 
-
-SELECT Session,
-       Position, 
-       COUNT(Position) SumPosition
-FROM AUDJPY
-	GROUP BY Session,
-		 Position
-	ORDER BY Session,
-		 SumPosition DESC;
 
 
 

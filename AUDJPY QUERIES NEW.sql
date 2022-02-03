@@ -129,39 +129,16 @@ GROUP BY Session
 
 
 
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\
-
---Total Profit Overall After Split FTP
-
-SELECT SUM(ProfitLossFTP) Total_Profit_Before_Split_FTP, SUM(ProfitLossFTP) * 0.8 Total_Profit_After_Split_FTP
-FROM AUDJPY 
-
-
-
---Total Profit in a month from 8/2 - 9/2 FTP
-
-SELECT SUM(ProfitLossFTP) Total_Profit_Before_Split_Month_FTP,SUM(ProfitLossFTP) * 0.8 Total_Profit_After_Split_Month_FTP
-FROM AUDJPY
-WHERE TradeID BETWEEN 1 AND 71 
-
-
-
---Total Profit Overall After Split TSL
-
-SELECT SUM(ProfitLossTSL) Total_Profit_Before_Split_TSL,SUM(ProfitLossTSL) * 0.8 Total_Profit_After_Split_TSL
-FROM AUDJPY 
-
-
-
---Total Profit in a month from 8/2 - 9/2 TSL
-
-SELECT SUM(ProfitLossTSL) Total_Profit_Before_Split_Month_TSL,SUM(ProfitLossTSL) * 0.8 Total_Profit_After_Split_Month_TSL
-FROM AUDJPY 
-WHERE TradeID BETWEEN 1 AND 71 
-
-
-
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+--Total Wins/Losses for Buys & Sells FTP & TSL
+
+SELECT * 
+FROM BUYFTP buy 
+	INNER JOIN SELLFTP sell 
+	ON buy.session = sell.session 
+	
+	
 
 --FTP Overall Win Percentage For All Sessions Combined
 
@@ -272,13 +249,15 @@ WHERE ProfitLossTSL > 0
 
 
 
---PROFIT BEFORE AND AFTER 70% PROFIT SPLIT
+--FTP PROFIT BEFORE AND AFTER 70% PROFIT SPLIT 
 
 SELECT SUM(ProfitLossFTP) ProfitBeforeSplit,
        SUM(ProfitLossFTP) * 0.7 ProfitAfterSplitFTP
 FROM AUDJPY 
 
 
+
+--TSL PROFIT BEFORE AND AFTER 70% PROFIT SPLIT 
 
 SELECT SUM(ProfitLossTSL) ProfitBeforeSplit,
        SUM(ProfitLossTSL) * 0.7 ProfitAfterSplitTSL
@@ -296,9 +275,30 @@ FROM AUDJPY
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
---MOST COMMON OCCURENCES IN FTP
+--FINDING THE MOST COMMON TYPE OF CONFLUENCE OVERALL
+
+SELECT COUNT(DISTINCT(Confluence)) TotalNumConfluences
+FROM AUDJPY;
+
+
+
+SELECT DISTINCT(Confluence)
+FROM AUDJPY;
+
+
+
+SELECT Confluence,
+       COUNT(Confluence) TypeConfluence
+FROM AUDJPY
+	GROUP BY Confluence
+	ORDER BY TypeConfluence DESC;
+
+
+
+
+--MOST COMMON OCCURENCES FOR FTP
 
 SELECT ProfitLossFTP,
        COUNT(ProfitLossFTP) FTPOccurence
@@ -309,7 +309,7 @@ HAVING COUNT(ProfitLossFTP) >= 2
 
 
 
---MOST COMMON OCCURENCES IN TSL
+--MOST COMMON OCCURENCES FOR TSL
 
 SELECT ProfitLossTSL,
        COUNT(ProfitLossTSL) TSLOccurence
@@ -320,7 +320,7 @@ HAVING COUNT(ProfitLossTSL) >= 2
 
 
 
-------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --TOTAL TRADES TAKEN DURING EACH SESSION 
 
@@ -341,161 +341,11 @@ FROM AUDJPY
 	GROUP BY Session,
 		 Position
 	ORDER BY Session,
-		 SumPosition DESC
+		 SumPosition DESC;
 
 
 
------------------------------------------------------------------------
-
---Total Wins/Losses for Buys & Sells FTP & TSL
-
-SELECT * 
-FROM BUYFTP buy 
-	INNER JOIN SELLFTP sell 
-	ON buy.session = sell.session 
-
-
-
---CREATE VIEW BUYFTP AS 
---(
---SELECT Session,Position,OutcomeFTP,COUNT(ProfitLossFTP) Total
---FROM AUDJPY 
---WHERE Position = 'Buy'
---GROUP BY Session,OutcomeFTP,Position
---ORDER BY Session,Total DESC;
---)
-
---CREATE VIEW SELLFTP AS 
---(
---SELECT Session,Position,OutcomeFTP,COUNT(ProfitLossFTP) Total
---FROM AUDJPY 
---WHERE Position = 'Sell'
---GROUP BY Session,OutcomeFTP,Position
---ORDER BY Session,Total DESC;
---) 
-
---CREATE VIEW BUYTSL AS
---(
---SELECT Session,Position,OutcomeTSL,COUNT(ProfitLossTSL) Total
---FROM AUDJPY 
---WHERE Position = 'Buy'
---GROUP BY Session,OutcomeTSL,Position
---ORDER BY Session,Total DESC;
---)
-
---CREATE VIEW SELLTSL AS 
---(
---SELECT Session,Position,OutcomeTSL,COUNT(ProfitLossTSL) Total
---FROM AUDJPY 
---WHERE Position = 'Sell'
---GROUP BY Session,OutcomeTSL,Position
---ORDER BY Session,Total DESC;
---)
-
-
---OUTCOME FOR FTP 
-
---SELECT Session,Position,OutcomeFTP,COUNT(Position) Total
---FROM AUDJPY
---GROUP BY Session,Position,OutcomeFTP
---ORDER BY Session,Total DESC
-
---OUTCOME FOR TSL
-
---SELECT Session,Position,OutcomeTSL,COUNT(Position) Total
---FROM AUDJPY
---GROUP BY Session,Position,OutcomeTSL
---ORDER BY Session,Total DESC,OutcomeTSL DESC 
-
--------------------------------------------------------------------------------
-
---UPDATE HAMMER TO BEARISH OR BULLISH HAMMER DEPENDING ON POSITION 
-
---UPDATE AUDJPY
---SET Confluence = 
---(CASE 
---	WHEN (Confluence = 'Hammer' AND  Position = 'Buy') THEN 'Bullish Hammer'
---	ELSE 'Bearish Hammer'
---END)
---WHERE Confluence = 'Hammer'
-
---FTP WIN PERCENTAGE
-
---SELECT (SUM(TradeID) / COUNT(OutcomeFTP)) WinPercentageFTP
---FROM AUDJPY
---WHERE OutcomeFTP = 'Win'
-
---TSL WIN PERCENTAGE
-
---SELECT (COUNT(OutcomeTSL)) WinPercentageTSL
---FROM AUDJPY
---WHERE OutcomeTSL = 'Win'
-
---TOTAL NUM OF ROWS 
-
---SELECT COUNT(*) TotalNumRows
---FROM AUDJPY
-
---CHANGE MONTH TO DATE FORMAT
-
---ALTER TABLE AUDJPY 
---ALTER COLUMN Month DATE
-
---CHANGE ALL DECIMALS TO PERCENTS
-
---UPDATE Result 
---SET FTPPercent = FTPPercent * 100 
---FROM Result
-
---UPDATE Result 
---SET TSLPercent = TSLPercent * 100 
---FROM Result
-
---UPDATE AUDJPY 
---SET PercentDifference = PercentDifference * 100 
---FROM Result
-
---UPDATE AUDJPY 
---SET CombinedPercent = CombinedPercent * 100 
---FROM Result
-
---TRADEID 83 CONFLUENCE IS NULL,SO WE NEED TO UPDATE THIS 
-
---SELECT Confluence 
---FROM AUDJPY
---WHERE Confluence IS NULL
-
---SELECT * 
---FROM AUDJPY
---WHERE Confluence IS NULL
-
---UPDATE AUDJPY 
---SET Confluence = 'Bearish Engulfing'
---WHERE TradeID = 83
-
------------------------------------------------------------------------
-
---FINDING THE MOST COMMON TYPE OF CONFLUENCE
-
-SELECT COUNT(DISTINCT(Confluence)) TotalNumConfluences
-FROM AUDJPY;
-
-
-
-SELECT DISTINCT(Confluence)
-FROM AUDJPY;
-
-
-
-SELECT Confluence,
-       COUNT(Confluence) TypeConfluence
-FROM AUDJPY
-	GROUP BY Confluence
-	ORDER BY TypeConfluence DESC;
-
-
-
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bearish Hammer
 
@@ -638,7 +488,7 @@ WHERE Confluence = 'Bearish Hammer'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bullish Hammer
 
@@ -781,7 +631,7 @@ WHERE Confluence = 'Bullish Hammer'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R
 
@@ -927,7 +777,7 @@ WHERE Confluence = 'B&R'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --BEARISH ENGULFING 
 
@@ -1073,7 +923,7 @@ WHERE Confluence = 'Bearish Engulfing'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bearish Engulfing
 
@@ -1219,7 +1069,7 @@ WHERE Confluence = 'B&R w/ Bearish Engulfing'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bearish Hammer
 
@@ -1365,7 +1215,7 @@ WHERE Confluence = 'B&R w/ Bearish Hammer'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bullish Engulfing, Continuation
 
@@ -1511,7 +1361,7 @@ WHERE Confluence = 'B&R w/ Bullish Engulfing, Continuation'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bullish Hammer
 
@@ -1657,7 +1507,7 @@ WHERE Confluence = 'B&R w/ Bullish Hammer'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R, Morning Star
 
@@ -1803,7 +1653,7 @@ WHERE Confluence = 'B&R, Morning Star'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --BEARISH ENGULFING 
 
@@ -1949,7 +1799,7 @@ WHERE Confluence = 'Bearish Engulfing'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bearish Engulfing, Continuation
 
@@ -2096,7 +1946,7 @@ WHERE Confluence = 'Bearish Engulfing, Continuation'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bullish Engulfing
 
@@ -2242,7 +2092,7 @@ WHERE Confluence = 'Bullish Engulfing'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bullish Engulfing, Continuation
 
@@ -2388,7 +2238,7 @@ WHERE Confluence = 'Bullish Engulfing, Continuation'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Continuation
 
@@ -2534,7 +2384,7 @@ WHERE Confluence = 'Continuation'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Evening Star
 
@@ -2680,7 +2530,7 @@ WHERE Confluence = 'Evening Star'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Morning Star
 
@@ -2826,7 +2676,7 @@ WHERE Confluence = 'Morning Star'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Trending
 
@@ -2972,7 +2822,7 @@ WHERE Confluence = 'Trending'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R
 
@@ -3117,7 +2967,7 @@ WHERE Confluence = 'B&R'
 	
 	
 	
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --BEARISH ENGULFING 
 
@@ -3264,7 +3114,7 @@ WHERE Confluence = 'Bearish Engulfing'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bearish Engulfing
 
@@ -3410,7 +3260,7 @@ WHERE Confluence = 'B&R w/ Bearish Engulfing'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bearish Hammer
 
@@ -3556,7 +3406,7 @@ WHERE Confluence = 'B&R w/ Bearish Hammer'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bullish Engulfing, Continuation
 
@@ -3702,7 +3552,7 @@ WHERE Confluence = 'B&R w/ Bullish Engulfing, Continuation'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R w/ Bullish Hammer
 
@@ -3848,7 +3698,7 @@ WHERE Confluence = 'B&R w/ Bullish Hammer'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --B&R, Morning Star
 
@@ -3992,7 +3842,7 @@ WHERE Confluence = 'B&R, Morning Star'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --BEARISH ENGULFING 
 
@@ -4138,7 +3988,7 @@ WHERE Confluence = 'Bearish Engulfing'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bearish Engulfing, Continuation
 
@@ -4285,7 +4135,7 @@ WHERE Confluence = 'Bearish Engulfing, Continuation'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bullish Engulfing
 
@@ -4431,7 +4281,7 @@ WHERE Confluence = 'Bullish Engulfing'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Bullish Engulfing, Continuation
 
@@ -4577,7 +4427,7 @@ WHERE Confluence = 'Bullish Engulfing, Continuation'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Continuation
 
@@ -4723,7 +4573,7 @@ WHERE Confluence = 'Continuation'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Evening Star
 
@@ -4869,7 +4719,7 @@ WHERE Confluence = 'Evening Star'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Morning Star
 
@@ -5015,7 +4865,7 @@ WHERE Confluence = 'Morning Star'
 
 
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --Trending
 
@@ -5161,7 +5011,7 @@ WHERE Confluence = 'Trending'
 	
 	
 
------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 

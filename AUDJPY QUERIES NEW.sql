@@ -17,7 +17,8 @@ FROM AUDJPY
 
 --Duration In Which All Trades Were Taken 
 
-SELECT COUNT(TradeID) TotalTrades,DATEDIFF(month,'2021-08-02','2021-10-27') DurationMonths
+SELECT COUNT(TradeID) TotalTrades,
+       DATEDIFF(month,'2021-08-02','2021-10-27') DurationMonths
 FROM AUDJPY
 
 

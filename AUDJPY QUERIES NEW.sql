@@ -298,41 +298,69 @@ FROM TOTALFTP ftp
 
 
 
-SELECT Session,SUM(ProfitLossFTP) TotalProfitBeforeSplitFTP,SUM(ProfitLossFTP) * 0.7 TotalProfitAfterSplitFTP,ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,SUM(ProfitLossTSL) TotalProfitBeforeSplitTSL,SUM(ProfitLossTSL) * 0.7 TotalProfitAfterSplitTSL,ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL
+SELECT Session,
+       SUM(ProfitLossFTP) TotalProfitBeforeSplitFTP,
+       SUM(ProfitLossFTP) * 0.7 TotalProfitAfterSplitFTP,
+       ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,SUM(ProfitLossTSL) TotalProfitBeforeSplitTSL,
+       SUM(ProfitLossTSL) * 0.7 TotalProfitAfterSplitTSL,ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL
 FROM AUDJPY 
 GROUP BY Session 
 
 
 
-SELECT Session,Confluence,ProfitLossFTP,COUNT(ProfitLossFTP) OccuredNumTimes,(ProfitLossFTP * COUNT(ProfitLossFTP) *  0.7) TotalProfit
+SELECT Session,
+       Confluence,
+       ProfitLossFTP,
+       COUNT(ProfitLossFTP) OccuredNumTimes,
+       (ProfitLossFTP * COUNT(ProfitLossFTP) *  0.7) TotalProfit
 FROM AUDJPY 
-GROUP BY Session,Confluence,ProfitLossFTP
-ORDER BY 1,5 DESC
+	GROUP BY Session,
+	         Confluence,
+		 ProfitLossFTP
+	ORDER BY 1,
+	         5 DESC
 
 
 
-SELECT Session,Confluence,ProfitLossTSL,COUNT(ProfitLossTSL) OccuredNumTimes,(ProfitLossTSL * COUNT(ProfitLossTSL) *  0.7) TotalProfit
+SELECT Session,
+       Confluence,
+       ProfitLossTSL,
+       COUNT(ProfitLossTSL) OccuredNumTimes,
+       (ProfitLossTSL * COUNT(ProfitLossTSL) *  0.7) TotalProfit
 FROM AUDJPY 
-GROUP BY Session,Confluence,ProfitLossTSL
-ORDER BY 1,5 DESC
+	GROUP BY Session,
+	         Confluence,
+		 ProfitLossTSL
+	ORDER BY 1,
+	         5 DESC
 
 
 
 --Most Profitable Confluences for each session FTP
 
-SELECT DISTINCT(Session),Confluence,ProfitLossFTP
+SELECT DISTINCT(Session),
+                Confluence,
+		ProfitLossFTP
 FROM AUDJPY 
-GROUP BY Session,Confluence,ProfitLossFTP
-ORDER BY 1,3 DESC
+	GROUP BY Session,
+                 Confluence,
+		 ProfitLossFTP
+	ORDER BY 1,
+	         3 DESC
 
 
 
 --Most Profitable Confluences for each session TSL
 
-SELECT DISTINCT(Session),Confluence,ProfitLossTSL
+SELECT DISTINCT(Session),
+                Confluence,
+		ProfitLossTSL
 FROM AUDJPY 
-GROUP BY Session,Confluence,ProfitLossTSL
-ORDER BY 1,3 DESC
+	GROUP BY Session,
+	         Confluence,
+		 ProfitLossTSL
+	ORDER BY 1,
+	         3 DESC
 
 
 

@@ -338,7 +338,13 @@ ORDER BY 1,3 DESC
 
 --Profit For FTP 
 
-SELECT Session,ROUND(MIN(ProfitLossFTP),2) MinProfitFTP, ROUND(MAX(ProfitLossFTP),2) MaxProfitFTP, ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,ROUND(AVG(ProfitLossFTP),2) * 0.7 AvgProfitFTPSplit,ROUND(SUM(ProfitLossFTP),2) TotalProfitFTP,ROUND(SUM(ProfitLossFTP),2) * 0.7 TotalProfitSplitFTP 
+SELECT Session,
+       ROUND(MIN(ProfitLossFTP),2) MinProfitFTP, 
+       ROUND(MAX(ProfitLossFTP),2) MaxProfitFTP, 
+       ROUND(AVG(ProfitLossFTP),2) AvgProfitFTP,
+       ROUND(AVG(ProfitLossFTP),2) * 0.7 AvgProfitFTPSplit,
+       ROUND(SUM(ProfitLossFTP),2) TotalProfitFTP,
+       ROUND(SUM(ProfitLossFTP),2) * 0.7 TotalProfitSplitFTP 
 FROM AUDJPY 
 GROUP BY Session
 
@@ -346,7 +352,11 @@ GROUP BY Session
 
 --Percent For FTP
 
-SELECT Session,ROUND(MIN(FTPPercent),4) * 100 MinPercentFTP, ROUND(MAX(FTPPercent),4) * 100 MaxPercentFTP, ROUND(AVG(FTPPercent),4) * 100 AvgPercentFTP,ROUND(SUM(FTPPercent),4) TotalPercentFTP
+SELECT Session,
+       ROUND(MIN(FTPPercent),4) * 100 MinPercentFTP, 
+       ROUND(MAX(FTPPercent),4) * 100 MaxPercentFTP, 
+       ROUND(AVG(FTPPercent),4) * 100 AvgPercentFTP,
+       ROUND(SUM(FTPPercent),4) TotalPercentFTP
 FROM AUDJPY 
 GROUP BY Session
 
@@ -354,7 +364,13 @@ GROUP BY Session
 
 --Profit For TSL
 
-SELECT Session,ROUND(MIN(ProfitLossTSL),2) MinProfitTSL, ROUND(MAX(ProfitLossTSL),2) MaxProfitTSL, ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL,ROUND(AVG(ProfitLossTSL),2) * 0.7 AvgProfitTSLSplit,ROUND(SUM(ProfitLossTSL),2) TotalProfitTSL,ROUND(SUM(ProfitLossTSL),2) * 0.7 TotalProfitSplitTSL
+SELECT Session,
+       ROUND(MIN(ProfitLossTSL),2) MinProfitTSL, 
+       ROUND(MAX(ProfitLossTSL),2) MaxProfitTSL, 
+       ROUND(AVG(ProfitLossTSL),2) AvgProfitTSL,
+       ROUND(AVG(ProfitLossTSL),2) * 0.7 AvgProfitTSLSplit,
+       ROUND(SUM(ProfitLossTSL),2) TotalProfitTSL,
+       ROUND(SUM(ProfitLossTSL),2) * 0.7 TotalProfitSplitTSL
 FROM AUDJPY 
 GROUP BY Session
 
@@ -362,7 +378,11 @@ GROUP BY Session
 
 --Percent For TSL
 
-SELECT Session,ROUND(MIN(TSLPercent),4) * 100 MinPercentTSL, ROUND(MAX(TSLPercent),4) * 100 MaxPercentTSL, ROUND(AVG(TSLPercent),4) * 100  AvgPercentTSL,ROUND(SUM(TSLPercent),4) TotalPercentTSL
+SELECT Session,
+       ROUND(MIN(TSLPercent),4) * 100 MinPercentTSL, 
+       ROUND(MAX(TSLPercent),4) * 100 MaxPercentTSL,
+       ROUND(AVG(TSLPercent),4) * 100  AvgPercentTSL,
+       ROUND(SUM(TSLPercent),4) TotalPercentTSL
 FROM AUDJPY 
 GROUP BY Session
 
@@ -370,7 +390,12 @@ GROUP BY Session
 
 --Combined Profit 
 
-SELECT Session,ROUND(MIN(CombinedProfit),2) MinCombinedProfit,ROUND(MAX(CombinedProfit),2) MaxCombinedProfit,ROUND(AVG(CombinedProfit),2) AvgCombinedProfit,ROUND(AVG(CombinedProfit),2) * 0.7 AvgProfitCombinedSplit,ROUND(SUM(CombinedProfit),2) CombinedTotalProfit
+SELECT Session,
+       ROUND(MIN(CombinedProfit),2) MinCombinedProfit,
+       ROUND(MAX(CombinedProfit),2) MaxCombinedProfit,
+       ROUND(AVG(CombinedProfit),2) AvgCombinedProfit,
+       ROUND(AVG(CombinedProfit),2) * 0.7 AvgProfitCombinedSplit,
+       ROUND(SUM(CombinedProfit),2) CombinedTotalProfit
 FROM AUDJPY 
 GROUP BY Session
 
@@ -378,7 +403,11 @@ GROUP BY Session
 
 --Combined Percent
 
-SELECT Session,ROUND(MIN(CombinedPercent),4) * 100  MinCombinedPercent,ROUND(MAX(CombinedPercent),4) * 100 MaxCombinedPercent,ROUND(AVG(CombinedPercent),4) * 100 AvgCombinedPercent,ROUND(SUM(CombinedPercent),4) CombinedTotalPercent
+SELECT Session,
+       ROUND(MIN(CombinedPercent),4) * 100  MinCombinedPercent,
+       ROUND(MAX(CombinedPercent),4) * 100 MaxCombinedPercent,
+       ROUND(AVG(CombinedPercent),4) * 100 AvgCombinedPercent,
+       ROUND(SUM(CombinedPercent),4) CombinedTotalPercent
 FROM AUDJPY 
 GROUP BY Session
 
